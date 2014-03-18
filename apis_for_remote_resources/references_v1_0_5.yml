@@ -1,0 +1,229 @@
+---
+basePath: /v1/
+description: Enumerations for study phases, indications and countries.
+documentationLink: https://sites.google.com/a/mdsol.com/knowledgebase/home/departments/engineering/on-demand-portfolio/services/medidata-services/phile-service
+id: references:v1.0.5
+name: references
+protocol: rest
+resources:
+  phases:
+    methods:
+      create:
+        id: phases.create
+        path: phases
+        httpMethod: POST
+        description: make a phase
+      index:
+        id: phases.index
+        path: phases
+        httpMethod: GET
+        description: A list of phases.
+        response:
+          type: array
+          items:
+            $ref: http://references.imedidata.com/schemas/Phase/v1.0.1
+      show:
+        id: phases.show
+        path: phases/{uuid}
+        httpMethod: GET
+        description: Details of a phase.
+        parameters:
+          uuid:
+            description: UUID of the phase.
+        response:
+          $ref: http://references.imedidata.com/schemas/Phase/v1.0.1
+  indications:
+    methods:
+      create:
+        id: indications.create
+        path: indications
+        httpMethod: POST
+        description: create indication
+      index:
+        id: indications.index
+        path: indications
+        httpMethod: GET
+        description: A list of indications.
+        parameters:
+          search_term:
+            description: A 3+ character search term that filters by indication code
+              and/or the short description
+            required: false
+            location: query
+          uuids:
+            description: A single UUID or a comma-separated list of indication UUIDs
+            required: false
+            location: query
+          page:
+            description: page number
+            required: false
+            location: query
+          per_page:
+            description: results per page
+            required: false
+            location: query
+          include_count:
+            description: return total
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://references.imedidata.com/schemas/Indication/v1.0.1
+      show:
+        id: indications.show
+        path: indications/{uuid}
+        httpMethod: GET
+        description: Gets a single indication
+        parameters:
+          uuid:
+            description: UUID of the indication
+        response:
+          $ref: http://references.imedidata.com/schemas/Indication/v1.0.1
+  countries:
+    methods:
+      index:
+        id: countries.index
+        path: countries
+        httpMethod: GET
+        description: A list of countries with 3 digit ISO country code.
+        parameters:
+          search_term:
+            description: A 2+ character search term that filters by countries name
+              and country_code
+            required: true
+            location: query
+          page:
+            description: page number
+            required: false
+            location: query
+          per_page:
+            description: results per page
+            required: false
+            location: query
+          include_count:
+            description: return total
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://references.imedidata.com/schemas/Country/v1.0.1
+      show:
+        id: countries.show
+        path: countries/{uuid}
+        httpMethod: GET
+        description: Gets a single country
+        parameters:
+          uuid:
+            description: UUID of the country
+        response:
+          $ref: http://references.imedidata.com/schemas/Country/v1.0.1
+  medidata_roles:
+    methods:
+      #this create action is only for the purposes of consuming roles in MCC-Admin, actual reference svc will not have
+      create:
+        id: medidata_roles.create
+        path: medidata_roles
+        httpMethod: POST
+        description: create medidata_role
+      index:
+        id: medidata_roles.index
+        path: medidata_roles
+        httpMethod: GET
+        description: A list of medidata_roles.
+        parameters:
+          page:
+            description: page number
+            required: false
+            location: query
+          per_page:
+            description: results per page
+            required: false
+            location: query
+          q:
+            description: 'Searching roles by terms wrapped in a boolean expression.'
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://references.imedidata.com/schemas/MedidataRole/v1.0.1
+      show:
+        id: medidata_roles.show
+        path: medidata_roles/{uuid}
+        httpMethod: GET
+        description: Gets a single medidata_role
+        parameters:
+          uuid:
+            description: UUID of the medidata_role
+        response:
+          $ref: http://references.imedidata.com/schemas/MedidataRole/v1.0.1
+schemas:
+  Indication:
+    id: http://references.imedidata.com/schemas/Indication/v1.0.1
+    resource: indications
+    type: object
+    properties:
+      code:
+        type: string
+        description: Normalized industry CPT code or Mdsol generated code
+      short_desc:
+        type: string
+        description: something
+      long_desc:
+        type: string
+        description: something
+      indication_group:
+        type: string
+        description: The broader indication area
+      therapeutic_area:
+        type: string
+        description: The general therapeutic area
+      uuid:
+        type: string
+        description: The UUID for the indication.
+  MedidataRole:
+    id: http://references.imedidata.com/schemas/MedidataRole/v1.0.1
+    resource: medidata_roles
+    type: object
+    properties:
+      name:
+        type: string
+      oid:
+        type: string
+      uuid:
+        type: string
+        description: The UUID for the Medidata Role.
+  Phase:
+    id: http://references.imedidata.com/schemas/Phase/v1.0.1
+    resource: phases
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the phase.
+      category:
+        type: string
+        description: The phase category attribute name ('medical_device', 'ui').
+      uuid:
+        type: string
+        description: The UUID for the phase_category.
+      phase_category_uuids:
+        type: array
+        description: An array of PhaseCategory UUIDs that are the parent
+  Country:
+    id: http://references.imedidata.com/schemas/Country/v1.0.1
+    resource: countries
+    type: object
+    properties:
+      name:
+        type: string
+      uuid:
+        type: string
+        description: The UUID for the countries.
+      country_code:
+        type: string
+        description: The 3-letter country code
+title: Global reference data for the Medidata Platform
+version: v1.0.5

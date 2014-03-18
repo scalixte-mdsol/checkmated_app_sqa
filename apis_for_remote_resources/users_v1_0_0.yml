@@ -1,0 +1,169 @@
+name: imedidata
+version: v2.0.6
+id: imedidata:v2.0.6
+title: Users
+description:
+documentationLink: https://sites.google.com/a/mdsol.com/knowledgebase/home/products/imedidata-knowledgebase
+protocol: rest
+basePath: /api/v2/
+aliases:
+  user_shared_read_write_properties: &user_common_read_write_properties
+    uuid:
+      type: string
+      description: The UUID for the user.
+    email:
+      type: string
+      description:  The email address of the user.
+    login:
+      type: string
+      description: The login (username) of the user.
+    first_name:
+      type: string
+      description: First name of the user.
+    last_name:
+      type: string
+      description: Last name of the user.
+    time_zone:
+      type: string
+      description: Timezone of the user.
+    locale:
+      type: string
+      description: Locale of the user.
+    institution:
+      type: string
+      description: Institution of the user.
+    title:
+      type: string
+      description: Title of the user.
+    department:
+      type: string
+      description: Department of the user.
+    address_line_1:
+      type: string
+      description: Address line 1 of the user.
+    address_line_2:
+      type: string
+      description: Address line 2 of the user.
+    address_line_3:
+      type: string
+      description: Address line 3 of the user.
+    city:
+      type: string
+      description: City of the user.
+    state:
+      type: string
+      description: State of the user.
+    postal_code:
+      type: string
+      description: Postal code of the user.
+    country:
+      type: string
+      description: Country of the user.
+    telephone:
+      type: string
+      description: Telephone number of the user.
+    fax:
+      type: string
+      description: Fax number of the user.
+    pager:
+      type: string
+      description: Pager number of the user.
+    mobile:
+      type: string
+      description: Mobile number of the user.
+    status_oid: # TODO remove; not part of the real contract
+      type: string
+      description: Status of the user.
+
+schemas:
+  User:
+    id: http://imedidata.imedidata.com/schemas/User/v2.0.1
+    resource: users
+    type: object
+    properties:
+      activation_code:
+        type: string
+        description: Activation code of the user.
+      name:
+        type: string
+        description: Name of the user.
+      creator_uuid:
+        type: string
+        description: UUID of the user's creator.
+      <<: *user_common_read_write_properties
+  UserCreateRequest:
+    id: http://imedidata.imedidata.com/schemas/UserCreateRequest/v2.0.1
+    resource: users
+    type: object
+    properties:
+      iso_state:
+        type: string
+        description: 3-letter ISO 3166 standard code for user's state.
+      iso_country:
+        type: string
+        description: 3-letter ISO 3166 standard code for user's country.
+      middle_name:
+        type: string
+        description: Middle name of the user.
+      <<: *user_common_read_write_properties
+
+resources:
+  users:
+    methods:
+      show:
+        id: users.show
+        path: users/{uuid}.json
+        httpMethod: GET
+        description: Details of a user.
+        parameters:
+          uuid:
+            description: UUID of the user.
+        response:
+          $ref: http://imedidata.imedidata.com/schemas/User/v2.0.1
+      create:
+        id: users.create
+        path: users.json
+        httpMethod: POST
+        description: Create a user.
+        request:
+          $ref: http://imedidata.imedidata.com/schemas/UserCreateRequest/v2.0.1
+        response:
+          $ref: http://imedidata.imedidata.com/schemas/User/v2.0.1
+      index: # TODO only used for testing
+        id: users.index
+        path: users
+        httpMethod: GET
+        description: A list of users.
+        parameters:
+          page:
+            description: page number
+            required: false
+            location: query
+          per_page:
+            description: results per page
+            required: false
+            location: query
+          email:
+            description: The email of the user
+            required: false
+            location: query
+          login:
+            description: The login of the user
+            required: false
+            location: query
+          telephone:
+            description: The phone number of the user
+            required: false
+            location: query
+          sort_by:
+            description: 'The field and direction of the sort order of a list of users.'
+            required: false
+            location: query
+          q:
+            description: 'Searching users by terms wrapped in a boolean expression.'
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://imedidata.imedidata.com/schemas/User/v2.0.1

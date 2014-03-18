@@ -1,0 +1,513 @@
+id: dalton:v2.0.0
+name: dalton
+version: v2.0.0
+title: Privileges data and authorizations for the Medidata Platform
+description: "A service that grants authorization to users, user accounts, and
+applications (both Medidata and third-party), to resources within
+Medidata's world of clinical resources"
+documentationLink: https://github.com/mdsol/dalton/blob/develop/contract.md
+protocol: rest
+basePath: /v2/
+aliases:
+  uri_schema: &uri_schema
+    operator_uri:
+      type: string
+      description: URI of the operator, such as com:mdsol:users:e14431bc-87f9-11e1-9130-00261824db2f
+      required: true
+      location: path
+    operable_uri:
+      type: string
+      description: URI of the operator, such as com:mdsol:studies:ea25c8f2-8350-11e1-b36b-00261824db2f
+      required: true
+      location: path
+    role_uri:
+      type: string
+      description: URI of the role, such as com:mdsol:roles:079e6b9d-e467-432e-94bd-ba39104d2493
+      required: true
+      location: path
+
+schemas:
+  ProtectedResourceType:
+    id: http://dalton.imedidata.com/schemas/ProtectedResourceType/v1.0.0
+    resource: protected_resource_types
+    type: object
+    properties:
+      oid:
+        type: string
+        description: "The OID for the resource type"
+      parents:
+        type: string
+        description: "The OIDs of the resource type's parents"
+  ConfigurationType:
+    id: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+    resource: configuration_types
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: "The UUID for the configuration type"
+      client_division_uuid:
+        type: string
+        description: "The UUID for the parent client division"
+      name:
+        type: string
+        description: "The name describing the configuration type"
+  ConfigurationTypeRole:
+    id: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+    resource: configuration_type_roles
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: "The UUID for the configuration type role"
+      configuration_type_uuid:
+        type: string
+        description: "The UUID for the configuration type"
+      role_category_oid:
+        type: string
+        description: "The OID of the role category"
+      name:
+        type: string
+        description: "The name of the role"
+      permissions:
+        type: array
+        description: "An array of permissions granted by the role"
+  RoleAssignment:
+    id: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+    resource: role_assignments
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: "The UUID for the role assignment"
+      operator_uri:
+        type: string
+        description: "The uri for the operator"
+      operable_uri:
+        type: string
+        description: "The uri for the operable"
+      role_uri:
+        type: string
+        description: "The uri for a role"
+      blocked:
+        type: boolean
+        description: "Boolean value that indicates whether this role assignment is temporarily blocked"
+      read_only:
+        type: boolean
+        description: "Boolean value that indicates whether this role assignment is Dalton read-only"
+      status:
+        type: string
+        description: "The status of the role assignment"
+  Privilege:
+    id: http://dalton.imedidata.com/schemas/Privilege/v1.0.0
+    resource: privileges
+    type: object
+    properties:
+      operator_uri:
+        type: string
+        description: "The uri for the operator"
+      operable_uri:
+        type: string
+        description: "The uri for the operable"
+      operation:
+        type: string
+        description: "The oid for an operation"
+      blocked:
+        type: boolean
+        description: "Boolean value that indicates whether all role assignments granting this privilege are temporarily blocked"
+  # This is a hack. This is a representation of what would be
+  # created if a Privilege supported a POST request.
+  # Additionally, Eureka client assumes that all POST requests
+  # return a UUID field, and it gets angry when it's not there
+  PrivilegeResponse:
+    id: http://dalton.imedidata.com/schemas/PrivilegeResponse/v1.0.0
+    resource: privileges
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: "a hack"
+      operator_uri:
+        type: string
+        description: "The uri for the operator"
+      operable_uri:
+        type: string
+        description: "The uri for the operable"
+      operation:
+        type: string
+        description: "The oid for an operation"
+      blocked:
+        type: boolean
+        description: "Boolean value that indicates whether all role assignments granting this privilege are temporarily blocked"
+
+slts:
+  default_slt: &default_slt
+    99th_percentile: 100ms
+    std_dev: 20ms 
+    requests_per_second: 500
+    
+resources:
+  protected_resource_types:
+    methods:
+      index:
+        id: protected_resource_types.index
+        path: protected_resource_types
+        httpMethod: GET
+        description: "A filtered collection of protected resource types "
+        parameters:
+          oid:
+            type: string
+            description: OID of the protected resource type
+            required: false
+            location: query
+          parent:
+            type: string
+            description: OID of a parent of the protected resource type
+            required: false
+            location: query
+          page:
+            description: "The page of results to display"
+            required: false
+            location: query
+          per_page:
+            description: "The results per page"
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://dalton.imedidata.com/schemas/ProtectedResourceType/v1.0.0
+        slt: *default_slt
+  configuration_types:
+    methods:
+      index:
+        id: configuration_types.index
+        path: client_divisions/{client_division_uuid}/configuration_types
+        httpMethod: GET
+        description: "A filtered collection of configuration types"
+        parameters:
+          client_division_uuid:
+            type: string
+            description: UUID of the parent client division
+            required: true
+            location: path
+          page:
+            description: "The page of results to display"
+            required: false
+            location: query
+          per_page:
+            description: "The results per page"
+            required: false
+            location: query
+          include_count:
+            description: Whether or not to include the total count of result entities
+            required: false
+            location: query
+            default: false
+        response:
+          type: array
+          items:
+            $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+      show:
+        id: configuration_types.show
+        path: configuration_types/{uuid}
+        httpMethod: GET
+        description: View details of a configuration type
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the configuration type
+            required: true
+            location: path
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+        slt: *default_slt
+      create:
+        id: configuration_types.create
+        path: client_divisions/{client_division_uuid}/configuration_types
+        httpMethod: POST
+        description: "Create a configuration type"
+        parameters:
+          client_division_uuid:
+            type: string
+            description: UUID of the parent client division
+            required: true
+            location: path
+        request:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+        slt: *default_slt
+      update:
+        id: configuration_types.update
+        path: configuration_types/{uuid}
+        httpMethod: PUT
+        description: "Change name of an existing configuration type"
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the configuration type
+            required: true
+            location: path
+        request:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationType/v1.0.0
+        slt: *default_slt
+  configuration_type_roles:
+    methods:
+      index:
+        id: configuration_type_roles.index
+        path: configuration_types/{configuration_type_uuid}/roles
+        httpMethod: GET
+        description: "A filtered collection of configuration type roles"
+        parameters:
+          configuration_type_uuid:
+            type: string
+            description: UUID of the configuration type
+            required: true
+            location: path
+          page:
+            description: "The page of results to display"
+            required: false
+            location: query
+          per_page:
+            description: "The results per page"
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+      show:
+        id: configuration_type_roles.show
+        path: configuration_type_roles/{uuid}
+        httpMethod: GET
+        description: View details of a configuration type role
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the configuration type role
+            required: true
+            location: path
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+        slt: *default_slt
+      create:
+        id: configuration_type_roles.create
+        path: configuration_types/{configuration_type_uuid}/roles
+        httpMethod: POST
+        description: "Create a configuration type role"
+        parameters:
+          configuration_type_uuid:
+            type: string
+            description: UUID of the configuration type
+            required: true
+            location: path
+        request:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+        slt: *default_slt
+      update:
+        id: configuration_type_roles.update
+        path: configuration_type_roles/{uuid}/permissions
+        httpMethod: PUT
+        description: "Change the permission set for a configuration type role"
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the configuration type role
+            required: true
+            location: path
+        request:
+          permissions:
+            type: array
+            description: "An array of permissions granted by the role"
+        response:
+          $ref: http://dalton.imedidata.com/schemas/ConfigurationTypeRole/v1.0.0
+        slt: *default_slt
+  role_assignments:
+    methods:
+      index:
+        id: role_assignments.index
+        path: role_assignments
+        httpMethod: GET
+        description: "A filtered collection of role assignments"
+        parameters:
+          page:
+            description: "The page of results to display"
+            required: false
+            location: query
+          per_page:
+            description: "The results per page"
+            required: false
+            location: query
+          include_count:
+            description: "Whether or not to include the total count of result entities"
+            required: false
+            location: query
+            default: false
+          operator_uri:
+            type: string
+            description: "URI of the operator"
+            required: false
+            location: path
+          operable_uri:
+            type: string
+            description: "URI of the operable"
+            required: false
+            location: path
+          role_uri:
+            type: string
+            description: "URI of the role"
+            required: false
+            location: path
+          status:
+            type: string
+            description: "The status of the role"
+            required: false
+            location: path
+        response:
+          type: array
+          items:
+            $ref: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+        slt: *default_slt
+      show:
+        id: role_assignments.show
+        path: role_assignments/{uuid}
+        httpMethod: GET
+        description: View details of a role assignment
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the role assignment
+            required: true
+            location: path
+        response:
+          $ref: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+        slt: *default_slt
+      create:
+        id: role_assignments.create
+        path: role_assignments
+        httpMethod: POST
+        description: "Create a role assignment"
+        parameters:
+        request:
+          $ref: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+        response:
+          $ref: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+      # Exposing only update method here (not block or unblock as in the real dalton api doc) since our mocked PUT
+      # calls to eurekatools are monkeypatched to use a single update method with the adjusted obj attrs.
+      update:
+        id: role_assignments.update
+        path: role_assignments/{uuid}
+        httpMethod: PUT
+        description: Update a role assignment
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the role assignment
+            location: path
+            required: true
+          status:
+            type: string
+            description: The status for updating the role assignment
+            required: true
+            location: query
+        request:
+          resource: role_assignments
+          type: object
+          properties:
+            status:
+              type: string
+              description: The status of the role assignment
+        response:
+          $ref: http://dalton.imedidata.com/schemas/RoleAssignment/v1.0.0
+      destroy:
+        id: role_assignments.destroy
+        path: role_assignments/{uuid}
+        httpMethod: DELETE
+        description: Deletes a role assignment
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the role assignment
+            required: true
+            location: path
+  privileges:
+    methods:
+      show:
+        id: privileges.show
+        path: privileges/show
+        httpMethod: GET
+        description: "Check that a given privilege exists"
+        parameters:
+          unblocked:
+            description: "Only succeed if the privilege is unblocked"
+            type: boolean
+            required: false
+            default: true
+          operator_uri:
+            type: string
+            description: URI of the operator, such as com:mdsol:users:e14431bc-87f9-11e1-9130-00261824db2f
+            required: true
+            location: query
+          operable_uri:
+            type: string
+            description: URI of the operator, such as com:mdsol:studies:ea25c8f2-8350-11e1-b36b-00261824db2f
+            required: true
+            location: query
+          operation:
+            type: string
+            description: OID of the operation, such as READ or RANDOMIZE
+            required: true
+            location: query
+        response:
+          $ref: http://dalton.imedidata.com/schemas/Privilege/v1.0.0
+      # This is a hack.  The API does not support creates, since
+      # Privileges are calculated using other resources
+      create:
+        id: privileges.create
+        path: privileges
+        httpMethod: POST
+        description: Create a privilege.
+        request:
+          $ref: http://dalton.imedidata.com/schemas/Privilege/v1.0.0
+        response:
+          $ref: http://dalton.imedidata.com/schemas/PrivilegeResponse/v1.0.0
+      # This is a HACK...it's not currently in the API document, but it
+      # is described in the contract as of 25-9-2013
+      index:
+        id: privileges.index
+        path: privileges
+        httpMethod: GET
+        description: The list of all operations that form valid privileges with the given operator and operable.
+        parameters:
+          page:
+            description: "The page of results to display"
+            required: false
+            location: query
+          per_page:
+            description: "The results per page"
+            required: false
+            location: query
+          include_count:
+            description: Whether or not to include the total count of result entities
+            required: false
+            location: query
+            default: false
+          operator_uri:
+            type: string
+            description: URI of the operator, such as com:mdsol:users:e14431bc-87f9-11e1-9130-00261824db2f
+            required: true
+            location: query
+          operable_uri:
+            type: string
+            description: URI of the operator, such as com:mdsol:studies:ea25c8f2-8350-11e1-b36b-00261824db2f
+            required: true
+            location: query
+        response:
+          type: array
+          items:
+            $ref: http://dalton.imedidata.com/schemas/Privilege/v1.0.0

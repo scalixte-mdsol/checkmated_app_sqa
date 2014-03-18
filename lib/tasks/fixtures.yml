@@ -1,0 +1,156 @@
+# Services (applications that provide resources that are consumable by
+# user-facing applications
+services:
+  - &mauth
+    name: mAuth
+    github_url: https://github.com/mdsol/mauth
+    uuid: 0996ccda-3438-44d7-bcdb-c8973398621b
+  - &dalton
+    name: Dalton
+    github_url: https://github.com/mdsol/dalton
+    uuid: d4a7ad90-8a79-4845-9c27-6d3c369ad095
+  - &plinth
+    name: Plinth
+    github_url: https://github.com/mdsol/plinth
+    uuid: ad8e2857-0504-44da-a0f4-581bae2a5cd8
+  - &landing_pages
+    name: Landing Pages
+    github_url: none
+    uuid: df2a9b7c-ef8c-492c-bf95-b0b59100b4df
+  - &eureka
+    name: Eureka
+    github_url: https://github.com/mdsol/eureka
+    uuid: 5ef03cf3-9068-4bab-8329-a9eb9924f849
+  - &subjects
+    name: Subjects
+    github_url: https://github.com/mdsol/subjects
+    uuid: aca00c56-7c05-43b9-ae0a-d8b928cfadcd
+  - &imedidata_api
+    name: iMedidata API
+    github_url: https://github.com/mdsol/imedidata
+    uuid: a3b69887-bec6-4869-bfd1-d987b6c66c41
+  - &authmedidata
+    name: Authmedidata (as service)
+    github_url: &authmedidata_repo
+      https://github.com/mdsol/authmedidata
+    uuid: a1e40fc4-b6ab-41bc-8672-064a1c1b99d6
+### Products (or User-facing Applications)
+products:
+  - &imedidata
+    name: iMedidata
+    github_url: https://github.com/mdsol/imedidata
+    uuid: 6817b6dc-ea5b-434f-9be5-76d035492d74
+    products_services:
+      - uuid: 9f61a6e7-f31e-467f-8c6b-74f2e0a36c60
+        service:
+          <<: *mauth
+      - uuid: 65ee5257-1604-4e67-9dd6-a373ba0adfd5
+        service:
+          <<: *eureka
+  - &checkmate
+    name: Checkmate
+    github_url: https://github.com/mdsol/checkmate
+    uuid: 92f9393b-cf57-490d-a690-e58bcdda5ec0
+    products_services:
+      - uuid: e0ec335e-5cee-43da-99ea-a79ba8dfc6c1
+        service:
+          <<: *dalton
+      - uuid: 0d5e5c0e-e60f-4e82-8a2d-96c0bbdedbc1
+        service:
+          <<: *plinth
+      - uuid: b4263ba9-5c6e-4fb3-8abb-5dbe7d879834
+        service:
+          <<: *landing_pages
+      - uuid: 5ef03cf3-9068-4bab-8329-a9eb9924f849
+        service:
+          <<: *eureka
+      - uuid: 71622048-1782-48f7-976a-6a9fab1c9032
+        service:
+          <<: *authmedidata
+      - uuid: c4f971ac-c461-4959-a413-22b61039d0cc
+        service:
+          <<: *mauth
+  - &gambit
+    name: Gambit
+    github_url: https://github.com/mdsol/Gambit
+    uuid: 4fcfefe9-dd74-482c-b046-7904e74e31f3
+    products_services:
+      - uuid: 1760b022-c631-44d0-8134-e509b066272b
+        service:
+          <<: *mauth
+      - uuid: 0b070a01-720e-4a85-adfe-bd5b89bfb76c
+        service:
+          <<: *dalton
+      - uuid: ca292197-2491-436a-8f51-b51d085a8369
+        service:
+          <<: *plinth
+      - uuid: 88883871-692f-442b-b566-dd6d1a594bfa
+        service:
+          <<: *eureka
+      - uuid: 2e08ff5c-7e33-43e6-bb99-3531851aa977
+        service:
+          <<: *subjects
+      - uuid: c656fdcc-f1ec-4a13-8468-0a7c200f41e9
+        service:
+          <<: *imedidata_api
+  - &authmedidata
+    name: AuthMedidata
+    github_url: *authmedidata_repo
+    uuid: fbce06ec-bda4-439e-9bcd-34e713797c2e
+    products_services: []
+  - &coder
+    name: Coder
+    github_url: https://github.com/mdsol/coder
+    uuid: ce0b1b6e-6a2a-4c86-a54f-cbb8597e4f9d
+    products_services:
+      - uuid: c14232b3-d962-4a1f-aced-d143a34facd1
+        service:
+          <<: *imedidata_api
+# studies URIs are from dalton seeds (fragile)
+studies:
+  adravil: &adravil_uri
+    study_uri:
+      com:mdsol:studies:6555bd04-4795-11e1-81a0-00261824db2f
+  byphodine: &byphodine_uri
+    study_uri:
+      com:mdsol:studies:ab1a11d6-4935-11e1-827e-00261824db2f
+  cordrazine: &cordrazine_uri
+    study_uri:
+      com:mdsol:studies:fbe7cf4a-4935-11e1-827e-00261824db2f      
+study_products:
+  - uuid: 7e92a8cb-b6dd-49bd-b5bd-ffb1a2abf5c2
+    <<: *adravil_uri
+    product: *authmedidata       
+  - uuid: ea960603-9c2a-4f1a-bd58-c163e3ab6f69
+    <<: *adravil_uri
+    product: *checkmate
+  - uuid: 0d355be1-dd00-4571-a3ef-5181ed1c842e
+    <<: *adravil_uri
+    product: *imedidata
+  - uuid: 661bdf77-d74e-4ec9-bdc4-75586edd368a
+    <<: *adravil_uri
+    product: *gambit
+  - uuid: c14650d0-a5d5-4432-afdc-f139463ea86e
+    <<: *byphodine_uri
+    product: *authmedidata
+  - uuid: 81cad57e-8ed7-40d1-8def-5d3f55d7eece
+    <<: *byphodine_uri
+    product: *checkmate
+  - uuid: 96354383-707a-48ad-96d4-408a8b1ce949
+    <<: *byphodine_uri
+    product: *imedidata
+  - uuid: c51ace5b-eec6-40f6-8ea4-4013b0a25e55
+    <<: *byphodine_uri      
+    product: *coder
+  - uuid: 048bd16b-1818-4ef2-a360-e9d0e570b7d3
+    <<: *cordrazine_uri    
+    product: *authmedidata
+  - uuid: b55278c4-4da9-4ea8-a60b-bda4a928fbdf
+    <<: *cordrazine_uri    
+    product: *checkmate
+  - uuid: cda8c281-2896-41f9-9392-2729d503b964
+    <<: *cordrazine_uri    
+    product: *imedidata    
+  - uuid: aadaf10b-ad54-4967-a177-6a586f389213
+    <<: *cordrazine_uri    
+    product: *coder

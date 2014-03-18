@@ -1,0 +1,31 @@
+- summary_panel = checkbox_presenter.try(:selection_summary_panel)
+- has_inner = @list_template_settings.try(:[], :filter_info).try(:[], :inner)
+.panel-heading
+  #filters-and-search.clearfix.filters
+    .pull-left
+      - if has_inner
+        #filters
+          = filter_presenter.try(:filter_tags)
+          = yield :roles_filter
+      - else
+        = summary_panel
+    - if @list_template_settings[:search] != :skip_pruning
+      #search.pull-right.col-md-5.col-sm-6
+        = search_presenter.search_tags(placeholder_text: search_placeholder, tooltip_text: search_tooltip)
+    = summary_panel if has_inner
+
+= search_presenter.try(:search_results)
+
+.default-list
+  %table{table_attributes(table_class, table_id, custom_table_attributes ||= nil)}
+    %thead
+      %tr
+        = yield :list_header_row
+    %tbody
+      - if items.empty?
+        %tr.empty-list-message-row
+          = yield :empty_list_body_row
+      - else
+        = yield :list_body
+.panel-footer
+  = pagination_presenter.try(:pagination_tags)

@@ -1,0 +1,593 @@
+---
+basePath: /v1/
+description: Core clinical objects.
+version: v1.0.0
+id: plinth:v1.0.0
+name: plinth
+protocol: rest
+aliases:
+  slts:
+    slt_1: &single_resource
+      99th_percentile: 100ms
+      std_dev: 25ms
+      requests_per_second: 100
+    slt_2: &multiple_resources
+      99th_percentile: 250ms
+      std_dev: 50ms
+      requests_per_second: 50
+    slt_3: &write_resource
+      99th_percentile: 250ms
+      std_dev: 50ms
+      requests_per_second: 25
+  pagination_params:
+    pagination_params_1: &paginate
+      page: &page_param
+        description: The page number for the results to display
+        required: false
+        location: query
+      per_page: &per_page_param
+        description: The number of results per page
+        required: false
+        location: query
+        default: 25
+      include_count: &include_count
+        description: Whether or not to include the total count of result entities
+        required: false
+        location: query
+        default: false
+  study_update_request:
+    update_study_schema: &study_update_properties
+      name:
+        type: string
+        description: The name of the study.
+      protocol_id:
+        type: string
+        description: The protocol id of the study.
+      primary_indication_uuid:
+        type: string
+        description: The UUID of the study's primary indication.
+      secondary_indication_uuid:
+        type: string
+        description: The UUID of the study's secondary indication.
+      phase_uuid:
+        type: string
+        description: The UUID of the study's phase.
+      configuration_type_uuid:
+        type: string
+        description: The UUID of the study's configuration type.
+      test_study:
+        type: boolean
+        description: A boolean indicating whether the study is a test study or not.
+  study_create_request:
+    create_study_schema: &study_create_properties
+      name:
+        type: string
+        description: The name of the study.
+        required: true
+      protocol_id:
+        type: string
+        description: The protocol id of the study.
+        required: true
+      client_division_uuid:
+        type: string
+        description: The UUID of the client division the study belongs to.
+        required: true
+      primary_indication_uuid:
+        type: string
+        description: The UUID of the study's primary indication.
+        required: true
+      secondary_indication_uuid:
+        type: string
+        description: The UUID of the study's secondary indication.
+      phase_uuid:
+        type: string
+        description: The UUID of the study's phase.
+        required: true
+      configuration_type_uuid:
+        type: string
+        description: The UUID of the study's configuration type.
+        required: true
+      test_study:
+        type: boolean
+        description: A boolean indicating whether the study is a test study or not.
+  study_esignature_required_common_method_schema: &study_esignature_required_common
+    parameters:
+      uuid:
+        type: string
+        description: UUID of the study.
+        required: true
+        location: path
+    request:
+      $ref: schemas/StudyEsignatureRequiredRequest/v1.0.0
+    response:
+      $ref: schemas/Study/v1.0.0
+    slt: *write_resource
+  main_address_property: &main_address_property
+    main_address:
+      type: object
+      id: schemas/MainAddress/v1.0.0
+      description: Main address.
+      properties:
+        address_1:
+          type: string
+          description: Line 1 of street address.
+        address_2:
+          type: string
+          description: Line 2 of street address.
+        address_3:
+          type: string
+          description: Line 3 of street address.
+        city:
+          type: string
+          description: City.
+        state:
+          type: string
+          description: ISO-3166-2 compliant state code.
+          minLength: 1
+          maxLength: 3
+        country:
+          type: string
+          description: ISO-3166-2 compliant alpha-2 country code that together with state code makes the complete state code.
+          minLength: 2
+          maxLength: 2
+        postal_code:
+          type: string
+          description: ISO-3166 compliant state code.
+          minLength: 1
+
+resources:
+  studies:
+    methods:
+      create:
+        id: studies.create
+        path: /studies
+        httpMethod: POST
+        description: make a study
+      update:
+        id: studies.update
+        path: /studies/{uuid}
+        httpMethod: PUT
+        description: update a study
+        parameters:
+          uuid:
+            description: UUID of the study.
+        response:
+          $ref: schemas/Study/v1.0.0
+      index:
+        id: studies.index
+        path: /studies
+        httpMethod: GET
+        description: A list of studies.
+        parameters:
+          page:
+            description: page number
+            required: false
+            location: query
+          per_page:
+            description: results per page
+            required: false
+            location: query
+          protocol_id:
+            description: The protocol id of the study.
+            required: false
+            location: query
+          client_division_uuid:
+            description: The UUID of the client division the study belongs to.
+            required: false
+            location: query
+          name:
+            description: The name of the study
+            required: false
+            location: query
+          indication:
+            description: The indication of the study
+            required: false
+            location: query
+          secondary_indication:
+            description: The secondary indication of the study
+            required: false
+            location: query
+          phase:
+            description: The phase of the study
+            required: false
+            location: query
+          status:
+            description: 'The status of the study:  Active, Locked or Inactive.'
+            required: false
+            location: query
+          q:
+            description: 'Searching studies by terms wrapped in a boolean expression.'
+            required: false
+            location: query
+          sort_by:
+            description: 'The field and direction of the sort order of a list of studies.'
+            required: false
+            location: query
+          <<: *paginate
+        response:
+          type: array
+          items:
+            $ref: schemas/Study/v1.0.0
+      show:
+        id: studies.show
+        path: /studies/{uuid}
+        httpMethod: GET
+        description: Details of a study.
+        parameters:
+          uuid:
+            description: UUID of the study.
+        response:
+          $ref: schemas/Study/v1.0.0
+  client_divisions:
+    methods:
+      show:
+        id: client_divisions.show
+        path: /client_divisions/{uuid}
+        httpMethod: GET
+        description: View details of a client division.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the client division.
+            required: true
+            location: path
+        response:
+          $ref: schemas/ClientDivision/v1.0.0
+      index:
+        id: client_divisions.index
+        path: /client_divisions
+        httpMethod: GET
+        description: View all client divisions with option for name.
+        parameters:
+          name:
+            type: string
+            description: Name of the client division.
+            location: query
+          <<: *paginate
+        response:
+          type: array
+          items:
+            $ref: schemas/ClientDivision/v1.0.0
+      create:
+        id: client_divisions.create
+        path: /client_divisions
+        httpMethod: POST
+        description: Create a client division.
+        response:
+          $ref: schemas/ClientDivision/v1.0.0
+      update:
+        id: client_divisions.update
+        path: /client_divisions/{uuid}
+        httpMethod: POST
+        description: Edit a client division.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the client division.
+            required: true
+            location: path
+        response:
+          $ref: schemas/ClientDivision/v1.0.0
+  study_environments:
+    methods:
+      create:
+        id: study_environments.create
+        path: /study_environments
+        httpMethod: POST
+        description: make a study environment
+      index:
+        id: study_environments.index
+        path: /study_environments
+        httpMethod: GET
+        description: a list of study environments
+        parameters:
+          study_uuid:
+            description: the UUID of a study
+            required: false
+            location: query
+          environment_oid:
+            description: the oid of the study environment
+            required: false
+            location: query
+        response:
+          type: array
+          items:
+            $ref: schemas/StudyEnvironment/v1.0.0
+      show:
+        id: study_environments.show
+        path: /study_environments/{uuid}
+        httpMethod: GET
+        description: Details of a study environment
+        parameters:
+          uuid:
+            description: UUID of the study environment
+        response:
+          $ref: schemas/StudyEnvironment/v1.0.0
+  medical_facilities:
+    methods:
+      create:
+        id: medical_facilities.create
+        path: /medical_facilities
+        httpMethod: POST
+        description: Create a medical facility.
+      show:
+        id: medical_facilities.show
+        path: /medical_facilities/{uuid}
+        httpMethod: GET
+        description: View details of a medical facility.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the medical facility.
+            required: true
+            location: path
+        response:
+          $ref: schemas/MedicalFacility/v1.0.0
+  sites:
+    methods:
+      create:
+        id: sites.create
+        path: /sites
+        httpMethod: POST
+        description: Create a site.
+      show:
+        id: sites.show
+        path: /sites/{uuid}
+        httpMethod: GET
+        description: View details of a sites.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the site.
+            required: true
+            location: path
+        response:
+          $ref: schemas/Site/v1.0.0
+  client_division_sites:
+    methods:
+      create:
+        id: client_division_sites.create
+        path: /client_division_sites
+        httpMethod: POST
+        description: Create a client division site.
+      show:
+        id: client_division_sites.show
+        path: /client_division_sites/{uuid}
+        httpMethod: GET
+        description: View details of a client division site.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the client division site.
+            required: true
+            location: path
+        response:
+          $ref: schemas/ClientDivisionSite/v1.0.0
+      index:
+        id: client_division_sites.index
+        path: /client_division_sites
+        httpMethod: GET
+        description: a list of study client division sites
+        parameters:
+          client_division_uuid:
+            description: the UUID of a client division
+            required: false
+            location: query
+          <<: *paginate
+        response:
+          type: array
+          items:
+            $ref: schemas/ClientDivisionSite/v1.0.0
+  study_environment_sites:
+    methods:
+      create:
+        id: study_environment_sites.create
+        path: /study_environment_sites
+        httpMethod: POST
+        description: make a study environment site
+      update:
+        id: study_environment_sites.update
+        path: /study_environment_sites/{uuid}
+        httpMethod: PUT
+        description: Edit a study environment site.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the study environment site.
+      show:
+        id: study_environment_sites.show
+        path: /study_environment_sites/{uuid}
+        httpMethod: GET
+        description: View details of a study environment site.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the study environment site.
+            required: true
+            location: path
+        response:
+          $ref: schemas/StudyEnvironmentSite/v1.0.0
+      index:
+        id: study_environment_sites.index
+        path: /study_environment_sites
+        httpMethod: GET
+        description: a list of study environment sites
+        parameters:
+          study_environment_uuid:
+            description: the UUID of a study environment
+            required: false
+            location: query
+          client_division_site_uuid:
+            description: the UUID of a client division site
+            required: false
+            location: query
+          <<: *paginate
+        response:
+          type: array
+          items:
+            $ref: schemas/StudyEnvironmentSite/v1.0.0
+      delete:
+        id: study_environment_sites.delete
+        path: /study_environment_sites/{uuid}
+        httpMethod: DELETE
+        description: Delete a study environment site.
+        parameters:
+          uuid:
+            type: string
+            description: UUID of the study environment site.
+            required: true
+            location: path
+
+schemas:
+  Study:
+    id: schemas/Study/v1.0.0
+    resource: studies
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the study.
+      uuid:
+        type: string
+        description: The UUID for the study.
+      status_oid:
+        type: string
+        description: 'The status of the study:  Active, Locked or Inactive.'
+      protocol_id:
+        type: string
+        description: The protocol id of the study.
+      phase_uuid:
+        type: uuid
+        description: The uuid of the study's phase.
+      configuration_type_uuid:
+        type: uuid
+        description: The uuid of the study's configuration type.
+      primary_indication_uuid:
+        type: uuid
+        description: The uuid of the study's indication.
+      secondary_indication_uuid:
+        type: uuid
+        description: The uuid of the secondary indication of the study.
+      test_study:
+        type: boolean
+        description: A boolean indicating whether the study is a test study or not.
+      client_division_uuid:
+        type: uuid
+        description: The uuid of the client division
+      esignature:
+        type: string
+        description: Base 64 encoded XML
+  ClientDivision:
+    id: schemas/ClientDivision/v1.0.0
+    resource: client_divisions
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the client division.
+        readonly: true
+      name:
+        type: string
+        description: Name of the client division.
+  StudyEnvironment:
+    id: schemas/StudyEnvironment/v1.0.0
+    resource: study_environments
+    type: object
+    properties:
+      environment_oid:
+        type: string
+        description: one of {dev, test, train, uat, prod}
+      study_uuid:
+        type: string
+        description: the UUID of the study the environment belongs to
+      uuid:
+        type: string
+        description: the UUID of the study environment
+  MedicalFacility:
+    id: schemas/MedicalFacility/v1.0.0
+    resource: medical_facilities
+    type: object
+    description: Location where studies are conducted.
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the medical facility.
+      name:
+        type: string
+        description: Name of the medical facility.
+      phone:
+        type: string
+        description: Contact phone number.
+      curated:
+        type: boolean
+        description: Boolean flag indicating whether the medical facility has been curated or not.
+      <<: *main_address_property
+  Site:
+    id: schemas/Site/v1.0.0
+    resource: sites
+    type: object
+    description: Combination of medical facility and principal investigator. Site is accessible across client divisions.
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the site.
+      medical_facility_uuid:
+        type: string
+        description: The UUID of the medical facility that the site represents.
+      principal_investigator_user_uuid:
+        type: string
+        description: The UUID of the principal investigator user at the site.
+      name:
+        type: string
+        description: Name of the site.
+      phone:
+        type: string
+        description: Contact phone number.
+      <<: *main_address_property
+  ClientDivisionSite:
+    id: schemas/ClientDivisionSite/v1.0.0
+    resource: client_division_sites
+    type: object
+    description: Instance of site at the client division level.
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the client division site.
+      site_uuid:
+        type: string
+        description: The UUID of the site.
+      client_division_uuid:
+        type: string
+        description: The UUID of the client division the client division site belongs to.
+      name:
+        type: string
+        description: Name of the client division site.
+      site_number:
+        type: string
+        description: The site number identifier for the client division site.
+      phone:
+        type: string
+        description: Contact phone number.
+      <<: *main_address_property
+  StudyEnvironmentSite:
+    id: schemas/StudyEnvironmentSite/v1.0.0
+    resource: study_environment_sites
+    type: object
+    description: Instance of client division site at the study environment level.
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the study environment site.
+      client_division_site_uuid:
+        type: string
+        description: The UUID of the associated client division site.
+      study_environment_uuid:
+        type: string
+        description: The UUID of the associated study environment.
+      site_number:
+        type: string
+        description: The site number identifier for the study environment site.
+      phone:
+        type: string
+        description: Contact phone number.
+      <<: *main_address_property

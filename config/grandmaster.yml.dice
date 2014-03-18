@@ -1,0 +1,8 @@
+#<% if Rails.env.production? && configured[:production].app_oid.nil? %>
+#<%   raise "Set the app_oid in medistrano for Grandmaster setup" %>
+#<% end %>
+#app_oid: '<%= configured[:production].app_oid || "checkmated_app_sqa" %>
+<% if Rails.env.production? && configured[:production].app_oid.nil? %>
+<%   raise "Set the app_oid in medistrano for Grandmaster setup" %>
+<% end %>
+    app_oid: '<%= configured[:production].app_oid || "checkmated_app_sqa" %>'

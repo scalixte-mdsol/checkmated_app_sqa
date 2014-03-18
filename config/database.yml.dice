@@ -1,0 +1,16 @@
+<%= warning.as_yaml_comment %>
+
+<% [:development, :test, :production].each do |env| %>
+<%= env %>:
+  adapter: <%= configured[env].database_driver || 'mysql2' %>
+  database: <%= configured[env].database_name || "checkmatedappsqa_#{env}" %><%= ('<'+'%=ENV["TEST_ENV_NUMBER"] %'+'>') if (env == :test) %>
+  username: <%= configured[env].database_username || 'root' %>
+  password: <%= configured[env].database_password %>
+  host: <%= configured[env].database_host || 'localhost' %>
+  pool: 5
+  timeout: 5000
+  encoding: utf8
+  reconnect: false
+  <% db_cert = configured[env].database_ssl_cert %>
+  <%= db_cert ? "sslca: #{db_cert}" : '' %>
+<% end %>

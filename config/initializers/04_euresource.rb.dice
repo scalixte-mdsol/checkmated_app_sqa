@@ -1,0 +1,116 @@
+# Further documentation can be found here: https://columbo.imedidata.com/docs/eurekaclient/current/design/file.Configuration.html
+<% eureka_url             = configured[:production].eureka_url || 'http://localhost:9292' %>
+<% eureka_stage           = configured[:production].eureka_stage || :development %>
+<% mauth_url              = configured[:production].mauth_url || 'http://localhost:7000' %>
+<% mauth_app_uuid         = configured[:production].mauth_app_uuid || 'a1d4a442-6929-4278-958c-34d7b898900a' %>
+<% mauth_private_key_file = 'config/mauth_key' %>
+<% entitystore            = configured[:production].entitystore || 'file:cache/rack/body' %>
+<% metastore              = configured[:production].metastore || 'file:cache/rack/meta' %>
+<% eureka_tools_cache     = configured[:production].eureka_tools_cache %>
+<% is_checkmated          = configured[:production].is_checkmated == 'yes' %>
+<% is_production          = configured[:production].eureka_url.present? %>
+<% mocked_resources_list  = configured[:production].mocked_resources.try(:split, ',') || [] %>
+require 'euresource'
+require 'eureka_tools'
+
+Euresource.configure do
+  config.stage_defaults do |defaults|
+    defaults.mauth('<%= mauth_url %>') do |mauth_config|
+      mauth_config.app_uuid '<%= mauth_app_uuid %>'
+      mauth_config.private_key_file '<%= mauth_private_key_file %>'
+
+      # Only set if you want different logger for MAuth
+      #mauth_config.logger MauthLogger.new
+    end
+    defaults.use MAuth::Faraday::RequestSigner, defaults.mauth_config
+
+    # Use the Faraday Impersonation Middleware for adding impersonation headers to requests
+    defaults.use Faraday::ImpersonationMiddleware
+
+    unless Rails.env.test? || Rails.env.development?
+      defaults.use CrossApplicationTracer::FaradayHandler
+    end
+	 
+    # Turns on develop mode for local development, which adds extra logging and forces API deployments to Eureka
+    # without having to delete prior versions of an API document for local development while making changes to an
+    # API document.
+    defaults.develop_mode false
+
+    # Rails logger will be used for all logging if this is not set in Rails.
+    #defaults.logger EuresourceLogger.new
+
+    #Un-comment this option if you want to skip authenticating eureka responses
+    #defaults.mauth_authenticate_responses false
+
+<% if entitystore && metastore %>
+    cache_config = {
+      entitystore: '<%= entitystore %>',
+      metastore: '<%= metastore %>',
+      ignore_headers: %w(X-Content-Digest X-Rack-Cache),
+      allow_reload: true,
+      allow_revalidate: true,
+      fault_tolerant: true,
+      verbose: true
+    }
+    defaults.use FaradayMiddleware::RackCompatible, Rack::Cache::Context, cache_config
+<% end %>
+  end
+
+  # This applies all default from above to configure a Eureka::Client instance for a specific eureka stage
+  config.stage('<%= eureka_url %>', :<%= eureka_stage %>) do |builder|
+
+    # Specifies base URL for correct MAuth and uses default configuration above otherwise
+    #builder.mauth('http://mauth-sandbox.example.com')
+    builder.faraday_adapter :net_http_persistent
+    
+    builder.use FaradayMiddleware::RackCompatible, CacheComplainer::Complainer
+  end
+
+<% if eureka_tools_cache %>
+  EurekaTools::ResourceMockerManager.cache_backend = <%= eureka_tools_cache %>
+<% end %>
+
+  # Load and parse all api_documents for mocked resources.
+  mocked_api_documents = Dir["#{Rails.root}/apis_for_remote_resources/*.yml"].map{ |f| YAML.load_file(f) }
+<% if is_production %>
+  mocked_resources = <%= mocked_resources_list %>
+<% else %>
+  mocked_resources = []
+
+  # References
+  mocked_resources.concat %w(indications phases medidata_roles)
+
+  # Dalton
+  mocked_resources.concat %w(configuration_types configuration_type_roles role_assignments privileges)
+
+  # Plinth
+  mocked_resources.concat %w(client_divisions studies study_environments medical_facilities sites client_division_sites study_environment_sites)
+
+  # TODO: get these from Plinth via a Euresource call.
+  ENVIRONMENT_NAMES = {
+    'dev' => 'Development',
+    'other' => 'Other',
+    'prod' => 'Production',
+    'train' => 'Training',
+    'uat' => 'User Acceptance Testing'
+  }
+
+  # iMedidata
+  mocked_resources.concat %w(users)
+<% end %>
+
+  fake_middleware_classes = mocked_resources.map do |resource_name|
+    EurekaTools::ResourceMockerManager.class_for_mocked_resource(resource_name, mocked_api_documents)
+  end
+
+  # Configures a second Eureka::Client instance that mock requests to external resource dependencies
+  # and stubs out requests to Eureka.
+  config.stage('http://eureka-example.com', :remote) do |builder|
+    builder.mock_api_deployments mocked_api_documents
+    builder.resources mocked_resources
+
+    # specify middlewares
+    fake_middleware_classes.each{ |fmc| builder.use fmc }
+    builder.faraday_adapter :rack, Rails.application
+  end
+end
